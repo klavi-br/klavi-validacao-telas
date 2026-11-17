@@ -1,0 +1,8 @@
+{
+  "name": "klavi-validacao-telas",
+  "version": "1.0.0",
+  "description": "Valida e orienta a construção das telas de consentimento Open Finance personalizadas por clientes da Klavi (LGPD e Banco Central).",
+  "author": { "name": "Klavi" },
+  "homepage": "https://klavi.ai",
+  "repository": "https://github.com/klavi-br/klavi-validacao-telas"
+}
