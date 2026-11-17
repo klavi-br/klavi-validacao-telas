@@ -1,0 +1,17 @@
+{
+  "name": "klavi",
+  "owner": { "name": "Klavi" },
+  "metadata": {
+    "description": "Skills oficiais da Klavi para clientes que integram o Open Finance via API.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "klavi-validacao-telas",
+      "source": "./plugins/klavi-validacao-telas",
+      "description": "Valida e orienta a construção das telas de consentimento Open Finance personalizadas por clientes da Klavi (LGPD e Banco Central).",
+      "version": "1.0.0",
+      "category": "compliance"
+    }
+  ]
+}
