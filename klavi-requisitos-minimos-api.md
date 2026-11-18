@@ -1,8 +1,36 @@
 # Klavi Open Finance — Requisitos Mínimos para Telas (Integração via API)
 
-**Versão:** 1.0 · **Data:** 10/09/2026 · **Escopo:** clientes que integram via API e constroem as próprias telas usando ferramentas de IA.
+**Versão:** 2.0 · **Data:** 18/11/2026 · **Escopo:** clientes que integram via API e constroem as próprias telas usando ferramentas de IA.
 
 **Dois usos:** **construir** telas que atendam aos requisitos (seções 1 a 7) e **validar** telas já construídas pelo cliente (seção 8).
+
+---
+
+## Tipos de jornada
+
+A jornada de consentimento tem dois tipos. O tipo é um parâmetro: `tipo_jornada: completa | reduzida`.
+
+**Padrão: jornada completa.** Se o cliente não informou o tipo de jornada:
+
+- **Construção:** use a jornada completa. Só use a reduzida se o cliente pedir. No final da entrega, informe que a jornada completa foi usada por padrão.
+- **Validação:** infira o tipo pelas telas enviadas, olhando a primeira tela da jornada:
+  - É **reduzida** se a primeira tela, antes da Seleção de Instituição, já traz as categorias de dados, o prazo, as finalidades ou o Disclaimer único (`REQ-RDZ-02`), ou se a Seleção de Instituição leva direto ao Redirecionamento.
+  - É **completa** se a primeira tela traz o Disclaimer #1, ou se existe uma tela de Confirmação dos Dados depois da Seleção de Instituição.
+  - Se não der para inferir (por exemplo, só foram enviadas a Seleção de Instituição e o Redirecionamento, que são iguais nas duas jornadas), use a completa.
+  - Informe no início do resultado qual jornada foi considerada e por quê (informada pelo cliente, inferida pelas telas ou padrão).
+
+| | Jornada completa | Jornada reduzida |
+|---|---|---|
+| Fluxo | Primeira tela → Seleção de Instituição → Confirmação dos Dados → Redirecionamento → Instituição → LGPD → Sucesso/Falha | Tela inicial combinada (primeira tela + Confirmação dos Dados) → Seleção de Instituição → Redirecionamento → Instituição → LGPD → Sucesso/Falha |
+| Primeira tela | 5.1, com o Disclaimer #1 | 5.5, tela inicial combinada |
+| Confirmação dos Dados | Tela própria, depois da Seleção de Instituição (5.3) | Não existe como tela própria. O conteúdo vai para a tela inicial (5.5) |
+| Etapa após a Seleção de Instituição | Confirmação dos Dados | Redirecionamento |
+| Disclaimers | #1, #2 e #3 | Disclaimer único (`REQ-RDZ-02`), que substitui #1, #2 e #3 |
+| Campos de CPF e contato | Na Confirmação dos Dados | Na tela inicial, controlados por `exibir_cpf_contato`. Dispensados se parametrizados no Create a Consent |
+| Conteúdo específico da instituição na etapa de dados | Permitido | Proibido (a instituição ainda não foi escolhida) |
+| Requisitos | 15 (seções 4.1 e 7.1) | 15 (seções 4.2 e 7.2) |
+
+**Etapas compartilhadas, idênticas nas duas jornadas:** Seleção de Instituição (5.2), Redirecionamento (5.4), Instituição, LGPD e Sucesso/Falha. Os requisitos de 5.2 e 5.4 são definidos uma única vez e valem para as duas jornadas. Este arquivo não define requisitos para Instituição, LGPD e Sucesso/Falha.
 
 ---
 
@@ -18,6 +46,7 @@ Se você é uma ferramenta de IA lendo este arquivo para construir telas:
 6. Não copie as telas padrão da Klavi. Construa a jornada com a identidade visual do cliente.
 7. Ao terminar, preencha o checklist da seção 7, item por item, informando onde cada requisito foi atendido. Se algum item não foi atendido, diga isso claramente em vez de marcar como atendido.
 8. Se houve qualquer conflito durante a construção, repita-o **no final da entrega**, junto ao checklist — não apenas antes de construir. O cliente precisa ver o conflito ao revisar o resultado.
+9. Antes de começar, identifique o tipo de jornada (seção "Tipos de jornada"). Se o cliente não informou, use a jornada completa e avise no final da entrega.
 
 Estes requisitos existem por obrigação legal (LGPD e regulação do Banco Central). Telas que não os atendem são reprovadas na validação da Klavi, independentemente da qualidade do design.
 
@@ -48,6 +77,8 @@ Não copie as telas padrão da Klavi. Construa a jornada com a identidade do cli
 
 ## 4. Resumo dos obrigatórios
 
+### 4.1 Jornada completa
+
 1. `REQ-LP-01` Disclaimer #1 na primeira tela da jornada — copiar exatamente, com os 3 documentos como links.
 2. `REQ-INST-01` Mensagem informando que a instituição selecionada será usada para o compartilhamento.
 3. `REQ-INST-02` Relação Instituição ⇄ Organização ⇄ Organização-pai construída via API.
@@ -64,9 +95,31 @@ Não copie as telas padrão da Klavi. Construa a jornada com a identidade do cli
 14. `REQ-RED-02` Os 3 próximos passos do redirecionamento informados, com o nome da instituição.
 15. `REQ-RED-03` Etapa de redirecionamento apenas informativa, sem ação adicional.
 
+### 4.2 Jornada reduzida
+
+1. `REQ-RDZ-01` Tela inicial combinada com o conteúdo na ordem definida e sem conteúdo específico da instituição.
+2. `REQ-RDZ-02` Disclaimer único — copiar exatamente, com Termos de Uso, as 2 Políticas de Privacidade e Portal Klavi como links.
+3. `REQ-RDZ-03` A Seleção de Instituição leva direto ao Redirecionamento, sem tela de Confirmação dos Dados.
+4. `REQ-INST-01` Mensagem de contexto da seleção (compartilhado, 5.2).
+5. `REQ-INST-02` Hierarquia de instituições (compartilhado, 5.2).
+6. `REQ-INST-03` Ferramenta de busca (compartilhado, 5.2).
+7. `REQ-CONF-01` Campo de CPF, na tela inicial, conforme `exibir_cpf_contato`.
+8. `REQ-CONF-02` Campo de contato, na tela inicial, conforme `exibir_cpf_contato`.
+9. `REQ-CONF-04` Nomes das 6 categorias, na tela inicial.
+10. `REQ-CONF-05` Descrição de cada categoria, na tela inicial.
+11. `REQ-CONF-07` Finalidades do compartilhamento, na tela inicial.
+12. `REQ-CONF-08` Seletor de prazo, na tela inicial.
+13. `REQ-RED-01` Aviso de redirecionamento seguro (compartilhado, 5.4).
+14. `REQ-RED-02` Próximos passos com o nome da instituição (compartilhado, 5.4).
+15. `REQ-RED-03` Redirecionamento apenas informativo (compartilhado, 5.4).
+
+Não se aplicam na jornada reduzida: `REQ-LP-01`, `REQ-CONF-03` e `REQ-CONF-06`. Os três disclaimers são substituídos por `REQ-RDZ-02`.
+
 ---
 
 ## 5. Requisitos por etapa
+
+As seções 5.1 a 5.4 descrevem a jornada completa. As seções 5.2 (Seleção de Instituição) e 5.4 (Redirecionamento) são compartilhadas e valem também para a jornada reduzida. A seção 5.5 define a tela inicial combinada da jornada reduzida.
 
 ### 5.1 Primeira tela da jornada
 
@@ -186,7 +239,7 @@ As duas referências abaixo devem ser **links funcionais**. Não podem ser exibi
 | Referência no texto | Destino |
 |---|---|
 | Termos de Uso | https://klavi.ai/termos-de-uso |
-| Portal Klavi | https://portal-open.klavi.ai/login |
+| Portal Klavi | https://portal.klavi.ai/ |
 
 **LIVRE:** estilo do link (cor, sublinhado, negrito) e se abre em nova aba, modal, webview ou tela interna do app.
 
@@ -298,6 +351,63 @@ Texto recomendado: "Antes de ir para o banco, certifique-se de que o aplicativo 
 
 ---
 
+### 5.5 Jornada reduzida — tela inicial combinada
+
+Vale apenas para `tipo_jornada: reduzida`. Substitui a Primeira tela (5.1) e a Confirmação dos Dados (5.3). A Seleção de Instituição (5.2) e o Redirecionamento (5.4) seguem os mesmos requisitos da jornada completa.
+
+#### `REQ-RDZ-01` — Conteúdo e ordem da tela inicial · OBRIGATÓRIO
+
+A primeira tela da jornada reduzida deve conter, nesta ordem:
+
+1. Cabeçalho: logo do cliente, título e texto de apoio. **LIVRE.**
+2. Campos de CPF e de contato: `REQ-CONF-01` e `REQ-CONF-02`, controlados por `exibir_cpf_contato` (ver abaixo).
+3. Seção "Dados compartilhados": `REQ-CONF-04` (nomes das 6 categorias) e `REQ-CONF-05` (descrição de cada categoria).
+4. Seção "Prazo e finalidade do compartilhamento": `REQ-CONF-08` (seletor de prazo) e `REQ-CONF-07` (finalidades).
+5. Disclaimer único: `REQ-RDZ-02`.
+6. Botão "Continuar".
+
+Os requisitos citados acima são definidos uma única vez, na seção 5.3, e mantêm todas as regras de lá: textos literais, nomes das categorias visíveis e sem ocultamento, ocultamento permitido nas descrições e nas finalidades, data calculada no seletor de prazo, máscara e validação de CPF e contato. Na jornada reduzida eles apenas mudam de tela.
+
+**Sem conteúdo específico da instituição.** Nesta tela o usuário ainda não escolheu a instituição. Não exiba nome, logo nem texto que faça referência à instituição selecionada. Esse conteúdo não vai para outra tela: o nome da instituição já aparece no Redirecionamento, como exige `REQ-RED-02`.
+
+**Não se aplicam na jornada reduzida:** `REQ-LP-01` (Disclaimer #1), `REQ-CONF-03` (Disclaimer #2) e `REQ-CONF-06` (Disclaimer #3). O Disclaimer único (`REQ-RDZ-02`) substitui os três. Não exiba os Disclaimers #1, #2 ou #3 nesta jornada.
+
+**LIVRE:** layout, estilo e hierarquia visual dentro de cada item, desde que a ordem acima seja mantida.
+
+##### `exibir_cpf_contato`
+
+Parâmetro de configuração: `exibir_cpf_contato: true | false`. Padrão: `true`.
+
+- `true`: os campos de CPF e de contato aparecem na tela inicial e seguem `REQ-CONF-01` e `REQ-CONF-02`.
+- `false`: os campos não aparecem. Só se aplica quando o CPF e no mínimo um dado de contato são parametrizados no **Create a Consent** (mesma exceção descrita em 5.3). Nesse caso o cliente já coletou esses dados nas próprias telas e os envia pela API, então não é preciso pedi-los de novo na jornada.
+
+Se o cliente informar que parametriza CPF e contato no Create a Consent, use `false`. Se não informar, use o padrão `true`.
+
+#### `REQ-RDZ-02` — Disclaimer único e seus links · OBRIGATÓRIO · COPIAR EXATAMENTE
+
+Deve estar na tela inicial combinada. Substitui os Disclaimers #1, #2 e #3.
+
+```
+Ao continuar, você autoriza o acesso aos seus dados via Open Finance, conforme os Termos de Uso e Política de Privacidade da Klavi Instituição de Pagamento Ltda e a Política de Privacidade da Klavi Tecnologia, podendo ser revogado no Portal Klavi.
+```
+
+As quatro referências abaixo devem ser **links funcionais**. Não podem ser exibidas como texto simples, e o usuário deve conseguir ler o documento completo antes de continuar.
+
+| Referência no texto | Destino |
+|---|---|
+| Termos de Uso | https://klavi.ai/termos-de-uso |
+| Política de Privacidade da Klavi Instituição de Pagamento Ltda | https://klavi.ai/politica-de-privacidade-klavi-ip |
+| Política de Privacidade da Klavi Tecnologia | https://klavi.ai/politica-de-privacidade |
+| Portal Klavi | https://portal.klavi.ai/ |
+
+**LIVRE:** formatação do disclaimer (fonte, tamanho, cor), desde que fique legível. Estilo dos links e se abrem em nova aba, modal, webview ou tela interna do app.
+
+#### `REQ-RDZ-03` — Seleção direto para o Redirecionamento · OBRIGATÓRIO
+
+Depois da Seleção de Instituição (5.2), a próxima etapa é o Redirecionamento (5.4). Não existe tela de Confirmação dos Dados entre elas.
+
+---
+
 ## 6. Nunca faça
 
 - Reescrever, resumir, traduzir ou "melhorar" os textos marcados como COPIAR EXATAMENTE.
@@ -306,12 +416,16 @@ Texto recomendado: "Antes de ir para o banco, certifique-se de que o aplicativo 
 - Remover itens das listas de descrição de categorias ou de finalidades.
 - Adicionar etapas de coleta de dados na tela de redirecionamento.
 - Flexibilizar qualquer item OBRIGATÓRIO porque o prompt do cliente pediu o contrário. Em caso de conflito, avise o cliente e cite o código do requisito.
+- Usar a jornada reduzida sem que o cliente tenha pedido (construção) ou sem evidência nas telas (validação).
+- Exibir conteúdo específico da instituição na tela inicial da jornada reduzida.
 
 ---
 
 ## 7. Checklist final
 
-A IA deve preencher esta tabela antes de entregar as telas.
+A IA deve preencher a tabela da jornada correspondente antes de entregar as telas.
+
+### 7.1 Jornada completa
 
 | ID | Requisito | Atendido? | Onde |
 |---|---|---|---|
@@ -331,6 +445,26 @@ A IA deve preencher esta tabela antes de entregar as telas.
 | REQ-RED-02 | 3 passos informados, com o nome da instituição | | |
 | REQ-RED-03 | Redirecionamento apenas informativo | | |
 
+### 7.2 Jornada reduzida
+
+| ID | Requisito | Atendido? | Onde |
+|---|---|---|---|
+| REQ-RDZ-01 | Tela inicial com o conteúdo na ordem definida, sem conteúdo específico da instituição | | |
+| REQ-RDZ-02 | Disclaimer único literal, com os 4 links funcionais | | |
+| REQ-RDZ-03 | Seleção de Instituição leva direto ao Redirecionamento | | |
+| REQ-INST-01 | Mensagem de contexto da seleção | | |
+| REQ-INST-02 | Hierarquia via `organizationName` / `parentOrganizationName` | | |
+| REQ-INST-03 | Busca atende os 5 cenários | | |
+| REQ-CONF-01 | Campo de CPF na tela inicial (ou `exibir_cpf_contato: false`, se parametrizado no Create a Consent) | | |
+| REQ-CONF-02 | Campo de contato na tela inicial (ou `exibir_cpf_contato: false`, se parametrizado no Create a Consent) | | |
+| REQ-CONF-04 | 6 categorias visíveis, literais, sem ocultamento | | |
+| REQ-CONF-05 | Descrições completas das 6 categorias | | |
+| REQ-CONF-07 | Seção de finalidades com 9 itens | | |
+| REQ-CONF-08 | Seletor de prazo com as 2 opções | | |
+| REQ-RED-01 | Aviso menciona "segurança" | | |
+| REQ-RED-02 | 3 passos informados, com o nome da instituição | | |
+| REQ-RED-03 | Redirecionamento apenas informativo | | |
+
 ---
 
 ## 8. Modo validação
@@ -339,23 +473,24 @@ Use esta seção quando o cliente pedir para **validar, revisar ou conferir** te
 
 ### 8.1 O que aceitar como entrada
 
-Capturas de tela, protótipo (Figma ou similar), código-fonte (HTML, React, Flutter, Swift, Kotlin etc.) ou URL de ambiente de teste. Se a jornada estiver incompleta, valide o que foi enviado e liste as etapas que faltam (5.1 Primeira tela, 5.2 Seleção de Instituição, 5.3 Confirmação dos Dados, 5.4 Redirecionamento).
+Capturas de tela, protótipo (Figma ou similar), código-fonte (HTML, React, Flutter, Swift, Kotlin etc.) ou URL de ambiente de teste. Se a jornada estiver incompleta, valide o que foi enviado e liste as etapas que faltam. Jornada completa: 5.1 Primeira tela, 5.2 Seleção de Instituição, 5.3 Confirmação dos Dados, 5.4 Redirecionamento. Jornada reduzida: 5.5 Tela inicial combinada, 5.2 Seleção de Instituição, 5.4 Redirecionamento.
 
 ### 8.2 Como validar
 
-1. Avalie **cada um dos 15 requisitos** da seção 4, um por um. Não pule nenhum, mesmo que a etapa não tenha sido enviada.
+1. Identifique o tipo de jornada: a informada pelo cliente ou, se não foi informada, a inferida pelas telas (seção "Tipos de jornada"). Na dúvida, use a completa. Depois avalie **cada um dos 15 requisitos** da jornada correspondente (seção 4.1 ou 4.2), um por um. Não pule nenhum, mesmo que a etapa não tenha sido enviada.
 2. **Textos COPIAR EXATAMENTE:** compare caractere por caractere com o texto deste arquivo, incluindo acentos, maiúsculas, pontuação e ponto final. Qualquer diferença é **Não atendido**.
-3. **Links:** confirme que cada referência é um link e que aponta exatamente para o destino da tabela. Em código, confira o `href` ou a navegação. Em captura de tela não é possível confirmar o destino: marque **Não verificável** e peça o código ou a URL.
+3. **Links:** confirme que cada referência é um link e que aponta exatamente para o destino da tabela. Exceção: para o Portal Klavi, `https://portal-open.klavi.ai/login` também é aceito (endereço antigo do mesmo portal), mas o recomendado é `https://portal.klavi.ai/`. Em código, confira o `href` ou a navegação. Em captura de tela não é possível confirmar o destino: marque **Não verificável** e peça o código ou a URL.
 4. **Categorias (`REQ-CONF-04`):** confirme que os 6 nomes aparecem literais, na tela principal, sem accordion fechado, "ver mais" ou clique.
 5. **Listas (`REQ-CONF-05` e `REQ-CONF-07`):** confira item por item. Um item ausente torna o requisito **Não atendido**. Liste quais faltam.
 6. **Busca (`REQ-INST-03`):** só é possível validar em código ou em ambiente funcional. Em captura de tela, marque **Não verificável**.
-7. **Parametrização (exceção de `REQ-CONF-01` e `REQ-CONF-02`):** se os campos de CPF e contato não aparecem, pergunte se o cliente parametriza esses dados no **Create a Consent**. Sem essa confirmação, marque **Não verificável**.
-8. Não presuma que algo foi atendido porque "provavelmente está em outra tela". Sem evidência, o status é **Não verificável**.
+7. **Parametrização (exceção de `REQ-CONF-01` e `REQ-CONF-02`):** se os campos de CPF e contato não aparecem, pergunte se o cliente parametriza esses dados no **Create a Consent**. Sem essa confirmação, marque **Não verificável**. Se o cliente confirmar a parametrização (na jornada reduzida, `exibir_cpf_contato: false`), marque **Não se aplica**.
+8. **Jornada reduzida:** confirme que a tela inicial não tem nome, logo nem texto da instituição selecionada, que os Disclaimers #1, #2 e #3 não aparecem e que nenhuma tela de Confirmação dos Dados aparece entre a Seleção de Instituição e o Redirecionamento.
+9. Não presuma que algo foi atendido porque "provavelmente está em outra tela". Sem evidência, o status é **Não verificável**.
 
 ### 8.3 Formato da resposta
 
 1. **Resultado:** `Pronto para envio à Klavi` somente se todos os 15 requisitos estiverem **Atendidos**. Caso contrário, `Ajustes necessários` ou `Validação incompleta` (quando houver itens **Não verificáveis** e nenhum **Não atendido**).
-2. **Checklist** da seção 7 preenchido, com status (**Atendido**, **Não atendido**, **Não verificável** ou **Não se aplica**, este último apenas para a exceção de parametrização) e a evidência em "Onde" (tela, arquivo e linha, ou trecho).
+2. **Checklist** da jornada correspondente (seção 7.1 ou 7.2) preenchido, com status (**Atendido**, **Não atendido**, **Não verificável** ou **Não se aplica**, este último apenas para a exceção de parametrização) e a evidência em "Onde" (tela, arquivo e linha, ou trecho).
 3. **Divergências:** para cada item **Não atendido**, mostre o que foi encontrado, o que é exigido e o código do requisito. Em textos literais, mostre o texto encontrado e o texto exigido lado a lado.
 4. **Itens opcionais** (manutenção `is_outage`, aviso iOS 18+): mencione apenas como sugestão. Nunca reprovam.
 
